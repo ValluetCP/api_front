@@ -1,0 +1,37 @@
+.box{
+    width: 60%;
+    margin: 150px auto;
+    display: flex;
+    height: 700px;
+
+}
+
+.user_list{
+    width: 30%;
+    border: 1px solid rgb(216, 138, 43);
+    background-color:rgb(216, 138, 43) ;
+    padding: 10px 20px;
+}
+
+.message{
+    width: 70%;
+    border: 1px solid bisque;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px 15px;
+    
+}
+
+#message{
+    width: 85%;
+    height: 35px;
+}
+
+.expediteur{
+    direction: ltr;
+}
+
+.recepteur{
+    direction: rtl;
+}
