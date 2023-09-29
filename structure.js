@@ -1,5 +1,10 @@
 const REGISTERFORM = $("#registerForm");
 const LOGINFORM = $("#loginForm");
+
+// pour récupérer le formulaire
+const MESSAGEFORM = $("#messageForm");
+
+let interlocutor = null; 
 getUserList();
 
 REGISTERFORM.on("submit", (e) => {
@@ -17,6 +22,7 @@ REGISTERFORM.on("submit", (e) => {
   register(pseudo, firstname, lastname, password, action);
 });
 
+
 LOGINFORM.on("submit", (e) => {
   // pour empêcher que le formulaire ne soit envoyer et que la page ne se recharge.
   e.preventDefault();
@@ -29,6 +35,21 @@ LOGINFORM.on("submit", (e) => {
   // appel de la fonction login
   login(pseudo, password, action);
 });
+
+// au click sur le bouton envoyer message
+MESSAGEFORM.on('submit', (e) => {
+  e.preventDefault();
+
+  // récupération du message
+  let message = $("#message").val();
+  let action = $("#action").val();
+  let expeditor = localStorage.getItem("iduser");
+  let receiver = interlocutor;
+
+  // appel de la fonction sendMessage
+  sendMessage(expeditor, receiver, message, action);
+})
+
 
 // la fonction register
 function register(pseudo, firstName, lastName, passWord, action) {
@@ -44,12 +65,14 @@ function register(pseudo, firstName, lastName, passWord, action) {
     // pour action, c'est aussi l'id mis dans le button
   };
 
+
   let dataOption = {
     method: "post",
     body: JSON.stringify(data),
     // pour que le format json soit compris par le langage php. Pour l'api puisse comprendre cette donnée
     // stringify() est une méthode qui appartient à la class JSON
   };
+
 
   // appel de la fonction fetch
   fetch("http://localhost/api_back/", dataOption)
@@ -77,6 +100,7 @@ function register(pseudo, firstName, lastName, passWord, action) {
 
     .catch((er) => console.log("pas tenue")); // .catch : dans le cas où la promesse n'est pas tenue. Finir l'instruction avec un point virgule, uniquement après catch. Ces 3 ligne forment l'instruction.
 }
+
 
 // la fonction login
 function login(pseudo, passWord, action) {
@@ -111,6 +135,7 @@ function login(pseudo, passWord, action) {
   // .catch : dans le cas où la promesse n'est pas tenue. Finir l'instruction avec un point virgule, uniquement après catch. Ces 3 ligne forment l'instruction.
 }
 
+
 // fonction pour obtenir la liste des utilisateurs
 function getUserList() {
   fetch("http://localhost/api_back/getuserlist/")
@@ -127,6 +152,7 @@ function getUserList() {
     .catch((error) => console.log(error));
 }
 
+
 // fonction pour afficher la liste des user
 function printUsers(listUser) {
   listUser.forEach((element) => {
@@ -137,25 +163,23 @@ function printUsers(listUser) {
 
     p.addEventListener("click", () => {
       getListMessage(localStorage.getItem("iduser"), p.id);
+      interlocutor = p.id;
     })
     // on ajoute le paragraphe comme enfant de la div avec la class user_list
     $("#user_list").append(p);
   });
 }
 
+
 // fonction pour avoir la liste des message entre deux utilisateurs getListMessage
 function getListMessage(expeditor, receiver) {
   fetch(
-    "http://localhost/api_back/getListMessage/" +
-      expeditor +
-      "/" +
-      receiver +
-      "/"
+    "http://localhost/api_back/getListMessage/" + expeditor + "/" + receiver + "/"
   )
     .then((response) => {
       response
         .json()
-        .then((data) => {
+        .then(data => {
           // traitement
           console.log(data);
           printMessages(data.listMessage);
@@ -165,10 +189,13 @@ function getListMessage(expeditor, receiver) {
     .catch((error) => console.log(error));
 }
 
+
 // fonction pour afficher la liste des messages entre 2 users
-function printMessages(ListMessage) {
-  ListMessage.forEach((element) => {
-    $("#discution").innerHTML = "";
+function printMessages(listMessage) {
+  console.log(listMessage);
+  document.getElementById("discution").innerHTML = "";
+  // $("#discution").innerHTML = "";
+  listMessage.forEach((element) => {
     //  on crée une div et un paragraphe
     let div = document.createElement("div");
     let p = document.createElement("p");
@@ -186,4 +213,36 @@ function printMessages(ListMessage) {
     }
     $("#discution").append(div);
   });
+}
+
+
+// fonction sendMessage pour envoyer un message  
+function sendMessage(expeditor, receiver, message, action){
+  let data = {
+    expeditor: expeditor,
+    receiver: receiver,
+    message: message,
+    action: action
+  };
+
+  let dataOption = {
+    method: "post",
+    body: JSON.stringify(data)
+  };
+
+  // on envoi la requête vers l'api
+  // appel de la fonction fetch
+  fetch("http://localhost/api_back/", dataOption)
+  .then((response) => {
+    // .then : dans le cas où la promesse est tenue
+      response.json()
+      .then((data) => {
+        // console.log(data);
+        getListMessage(expeditor, receiver);
+        $("#message").val("").select();
+      })
+      .catch((error) => console.log(error));
+  })
+
+  .catch((error) => console.log(error));
 }
